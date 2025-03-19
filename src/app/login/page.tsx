@@ -9,6 +9,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { createUserProfile, updateLastLogin, getUserProfile } from '@/lib/userService';
 import Link from 'next/link';
 
 export default function Login() {
@@ -20,10 +21,7 @@ export default function Login() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in
-        router.push('/dashboard'); // Redirect to dashboard after login
-      }
+     
     });
 
     return () => unsubscribe();
@@ -44,7 +42,7 @@ export default function Login() {
       // Store the token in session storage
       sessionStorage.setItem('userToken', idToken);
       
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       setError(err.message || 'Failed to login');
     } finally {
@@ -61,7 +59,7 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
       sessionStorage.setItem('userToken', idToken);
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       setError(err.message || 'Failed to login with Google');
     } finally {
