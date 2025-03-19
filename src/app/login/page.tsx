@@ -9,7 +9,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { createUserProfile, updateLastLogin, getUserProfile } from '@/lib/userService';
+import { createUserProfile, updateLastLogin } from '../lib/userService';
 import Link from 'next/link';
 
 export default function Login() {
@@ -20,8 +20,16 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-     
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Create new user profile if it doesn't exist
+          await createUserProfile(user.uid, user.email || '');
+          router.push('/');
+        } catch (err) {
+          console.error('Error managing user profile:', err);
+        }
+      }
     });
 
     return () => unsubscribe();
@@ -31,17 +39,18 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      
-      // Get the ID token
       const idToken = await user.getIdToken();
-      
-      // Store the token in session storage
       sessionStorage.setItem('userToken', idToken);
-      
+  
+      // Create or update user profile
+      await createUserProfile(user.uid, user.email || '');
+  
+      // Update last login timestamp
+      await updateLastLogin(user.uid);
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'Failed to login');
@@ -59,6 +68,11 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
       sessionStorage.setItem('userToken', idToken);
+
+      // Create or update user profile
+      await createUserProfile(result.user.uid, result.user.email || '');
+
+      await updateLastLogin(result.user.uid);
       router.push('/');
     } catch (err: any) {
       setError(err.message || 'Failed to login with Google');
