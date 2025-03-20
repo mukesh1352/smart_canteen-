@@ -38,10 +38,10 @@ export default function Signup() {
         createdAt: new Date().toISOString(),
       });
 
-      alert("Signup successful! Redirecting to home page...");
+      // alert("Signup successful! Redirecting to login page...");
 
       // Redirect to home page after successful signup
-      window.location.href = "/";
+      window.location.href = "/login";
 
       // Clear input fields
       setUsername("");

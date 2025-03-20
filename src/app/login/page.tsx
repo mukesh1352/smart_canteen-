@@ -36,7 +36,7 @@ export default function Login() {
         return;
       }
 
-      alert("Login successful! Redirecting to home page...");
+    //   alert("Login successful! Redirecting to home page...");
       
       // Redirect to home page after successful login
       window.location.href = "/";
