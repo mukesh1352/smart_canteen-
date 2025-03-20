@@ -53,39 +53,37 @@ export default function Signup() {
     }
   };
 
-  // Function to handle Google Signup
-  const handleGoogleSignup = async () => {
+  // Google Login Function
+  const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      if (!user) throw new Error("No user found!");
+      // Save user details in "users" collection
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        createdAt: new Date().toISOString(),
+      });
 
-      // Reference Firestore collection
-      const userRef = doc(db, "user", user.uid);
-
-      // Check if user already exists
-      const userSnap = await getDoc(userRef);
-      if (!userSnap.exists()) {
-        // Save user details in Firestore
-        await setDoc(userRef, {
-          uid: user.uid,
-          username: user.displayName || "",
-          email: user.email,
-          photoURL: user.photoURL,
-          createdAt: new Date().toISOString(),
-        });
-      }
-
-      alert("Google Signup successful! Redirecting to home page...");
-
-      // Redirect to home page after successful signup
+      // Redirect user after successful login (Google login in this case)
       window.location.href = "/";
 
     } catch (err) {
-      console.error("Google Signup Error:", err);
+      console.error("Google Login Error:", err);
       setError(err instanceof Error ? err.message : "Error signing in with Google.");
+    }
+  };
+
+  // Save Username & Password to Firestore
+  const handleSaveCredentials = async () => {
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password cannot be empty.");
+      return;
     }
   };
 
@@ -115,7 +113,7 @@ export default function Signup() {
       <hr />
 
       {/* Google Signup Button */}
-      <button onClick={handleGoogleSignup}>Sign up with Google</button>
+      <button onClick={handleGoogleLogin}>Sign up with Google</button>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
