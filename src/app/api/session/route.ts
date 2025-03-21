@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     await redis.set(sessionId, JSON.stringify({ username, loggedIn: true }), "EX", 3600);
 
     return NextResponse.json({ sessionId });
-  } catch {
+  } catch (error) {
+    console.error("Session creation error:", error);
     return NextResponse.json({ error: "Error creating session" }, { status: 500 });
   }
 }
@@ -28,7 +29,8 @@ export async function GET(req: NextRequest) {
     if (!session) return NextResponse.json({ logout: true }, { status: 401 });
 
     return NextResponse.json({ session: JSON.parse(session) });
-  } catch {
+  } catch (error) {
+    console.error("Session retrieval error:", error);
     return NextResponse.json({ error: "Error retrieving session" }, { status: 500 });
   }
 }
@@ -36,11 +38,13 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const sessionId = req.headers.get("session-id");
-    if (!sessionId) return NextResponse.json({ error: "No session ID provided" }, { status: 400 });
-
+    if (!sessionId) {
+      return NextResponse.json({ error: "No session ID provided" }, { status: 400 });
+    }
     await redis.del(sessionId);
     return NextResponse.json({ message: "Session deleted" });
-  } catch {
+  } catch (error) {
+    console.error("Session deletion error:", error);
     return NextResponse.json({ error: "Error deleting session" }, { status: 500 });
   }
 }
