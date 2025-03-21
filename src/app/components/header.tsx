@@ -1,11 +1,11 @@
 "use client";
-import Link from 'next/link';
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";  // Import router
+import { useRouter } from "next/navigation";
 
-const Header = () => {
+export default function Header() {
   const [session, setSession] = useState<any>(null);
-  const router = useRouter();  // Initialize router
+  const router = useRouter();
 
   useEffect(() => {
     const sessionId = localStorage.getItem("session-id");
@@ -27,7 +27,7 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("session-id");
-    router.push("/login");  // Use router.push for navigation
+    router.push("/logout");
   };
 
   return (
@@ -44,7 +44,7 @@ const Header = () => {
               <Link href="/login" style={styles.button}>
                 Login
               </Link>
-              <Link href="/signup" style={{ ...styles.button, backgroundColor: '#007bff' }}>
+              <Link href="/signup" style={{ ...styles.button, backgroundColor: "#007bff" }}>
                 Sign Up
               </Link>
             </>
@@ -53,39 +53,37 @@ const Header = () => {
       </div>
     </header>
   );
-};
+}
 
-import { CSSProperties } from 'react';
+import { CSSProperties } from "react";
 
 const styles: { [key: string]: CSSProperties } = {
   header: {
-    backgroundColor: '#333',
-    padding: '10px 20px',
-    color: 'white',
-    textAlign: 'center',
+    backgroundColor: "#333",
+    padding: "10px 20px",
+    color: "white",
+    textAlign: "center",
   },
   container: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
-    fontSize: '2rem',
+    fontSize: "2rem",
     margin: 0,
   },
   nav: {
-    display: 'flex',
-    gap: '15px',
+    display: "flex",
+    gap: "15px",
   },
   button: {
-    padding: '10px 20px',
-    borderRadius: '5px',
-    backgroundColor: '#28a745',
-    color: 'white',
-    textDecoration: 'none',
-    textAlign: 'center',
-    transition: 'background-color 0.3s',
+    padding: "10px 20px",
+    borderRadius: "5px",
+    backgroundColor: "#28a745",
+    color: "white",
+    textDecoration: "none",
+    textAlign: "center",
+    transition: "background-color 0.3s",
   },
 };
-
-export default Header;

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";  // Import router
+import { useRouter } from "next/navigation";
 
 interface Session {
   username: string;
@@ -9,51 +9,27 @@ interface Session {
 
 export default function ProtectedPage() {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true); // New loading state
-  const router = useRouter();  // Initialize router
+  const router = useRouter();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const sessionId = localStorage.getItem("session-id");
-      if (!sessionId) {
-        logoutUser();
-        return;
-      }
+    const sessionId = localStorage.getItem("session-id");
 
-      try {
-        const response = await fetch("/api/session", {
-          method: "GET",
-          headers: { "session-id": sessionId },
-        });
+    if (!sessionId) {
+      router.push("/login");
+      return;
+    }
 
-        const data = await response.json();
-
-        if (!response.ok || data.logout) {
-          logoutUser(); // Handle session expiration
-          return;
+    fetch("/api/session", { method: "GET", headers: { "session-id": sessionId } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.logout) {
+          router.push("/login");
+        } else {
+          setSession(data.session);
         }
+      })
+      .catch(() => router.push("/login"));
+  }, [router]);
 
-        setSession(data.session);
-      } catch (error) {
-        console.error("Error checking session:", error);
-        logoutUser(); // Logout on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkSession();
-  }, []);
-
-  // Logout function (clears session and redirects)
-  const logoutUser = () => {
-    localStorage.removeItem("session-id");
-    router.push("/login");  // Use router.push for navigation
-  };
-
-  if (loading) {
-    return <h1>Checking session...</h1>;
-  }
-
-  return session ? <h1>Welcome, {session.username}!</h1> : null;
+  return session ? <h1>Welcome, {session.username}!</h1> : <h1>Checking session...</h1>;
 }

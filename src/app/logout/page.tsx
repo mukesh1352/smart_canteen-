@@ -1,33 +1,23 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";  // Import router
+import { useRouter } from "next/navigation";
 
 export default function Logout() {
-  const router = useRouter();  // Initialize router
+  const router = useRouter();
 
   useEffect(() => {
-    const logoutUser = async () => {
-      const sessionId = localStorage.getItem("session-id");
-      if (!sessionId) {
-        // If no session found, redirect directly to home page
-        router.push("/");  // Redirect to home page
-        return;
-      }
+    const sessionId = localStorage.getItem("session-id");
 
-      // Call the API to delete the session
-      await fetch("/api/session", {
-        method: "DELETE",
-        headers: { "session-id": sessionId },
+    if (!sessionId) {
+      router.push("/");
+      return;
+    }
+
+    fetch("/api/session", { method: "DELETE", headers: { "session-id": sessionId } })
+      .finally(() => {
+        localStorage.removeItem("session-id");
+        router.push("/");
       });
-
-      // Remove session from localStorage and redirect to home page
-      localStorage.removeItem("session-id");
-
-      // Redirect to home page after logout
-      router.push("/");  // Redirect to home page
-    };
-
-    logoutUser();
   }, [router]);
 
   return <h1>Logging out...</h1>;
