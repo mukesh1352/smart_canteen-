@@ -53,7 +53,7 @@ export default function Header() {
     }
     localStorage.removeItem("session-id");
     setSession(null);
-    router.push("/login");
+    router.push("/");
   };
 
   return (
