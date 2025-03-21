@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@upstash/redis": "^1.34.6",
     "bcryptjs": "^3.0.2",
     "daisyui": "^5.0.9",
     "firebase": "^11.5.0",
