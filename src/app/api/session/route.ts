@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     if (!sessionId) return NextResponse.json({ error: "No session ID provided" }, { status: 400 });
 
     const session = await redis.get(sessionId);
-    if (!session) return NextResponse.json({ logout: true }, { status: 401 });
+    if (!session) return NextResponse.json({ logout: true, error: "Session expired or invalid" }, { status: 401 });
 
     return NextResponse.json({ session: JSON.parse(session) });
   } catch (error) {
