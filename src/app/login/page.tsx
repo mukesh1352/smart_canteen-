@@ -12,10 +12,9 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to home if session exists
     const sessionId = localStorage.getItem("session-id");
     if (sessionId) {
-      router.push("/"); // Redirect to home if already logged in
+      router.push("/");
     }
   }, [router]);
 
@@ -42,11 +41,11 @@ export default function Login() {
         body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) throw new Error("Session creation failed");
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Session creation failed");
+
       localStorage.setItem("session-id", data.sessionId);
-      router.push("/"); // Redirect to home after successful login
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error during login.");
     }
@@ -54,43 +53,20 @@ export default function Login() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-black bg-opacity-80 backdrop-blur-lg">
-      <div className="card w-96 p-6 rounded-xl shadow-2xl bg-gray-900 bg-opacity-60 backdrop-blur-lg border border-gray-700">
+      <div className="card w-96 p-6 rounded-xl shadow-2xl bg-gray-900 bg-opacity-60">
         <h2 className="text-2xl font-bold text-center text-white mb-4">Login</h2>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Enter Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
-          />
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
-          />
-          <button
-            type="submit"
-            className="btn w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-300"
-          >
-            Login
-          </button>
+          <input type="text" placeholder="Enter Username" value={username} onChange={(e) => setUsername(e.target.value)} required className="input w-full" />
+          <input type="password" placeholder="Enter Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="input w-full" />
+          <button type="submit" className="btn w-full bg-blue-600 hover:bg-blue-500 text-white">Login</button>
         </form>
 
         {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
 
         <p className="text-center text-sm mt-3 text-gray-400">
-  Don&apos;t have an account?{" "}
-  <a href="/signup" className="text-blue-400 hover:underline">
-    Sign up
-  </a>
-</p>
-
+          Don&apos;t have an account? <a href="/signup" className="text-blue-400 hover:underline">Sign up</a>
+        </p>
       </div>
     </div>
   );
