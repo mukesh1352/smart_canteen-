@@ -4,8 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
 
+// Define a type for the session object
+interface Session {
+  userId: string;
+  username: string;
+  // Add other session-related properties if necessary
+}
+
 export default function Header() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null); // Improved session type
   const [theme, setTheme] = useState<string>("dark");
   const router = useRouter();
 
@@ -50,7 +57,10 @@ export default function Header() {
         </h1>
 
         <nav className="flex gap-4 items-center">
-          <button onClick={toggleTheme} className="btn btn-ghost btn-sm transition-all duration-300">
+          <button
+            onClick={toggleTheme}
+            className="btn btn-ghost btn-sm transition-all duration-300"
+          >
             {theme === "dark" ? (
               <Sun className="w-5 h-5 text-yellow-400 hover:scale-110 transition-transform" />
             ) : (

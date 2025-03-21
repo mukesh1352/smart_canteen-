@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -11,8 +11,17 @@ export default function Login() {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
 
+  useEffect(() => {
+    // Redirect to home if session exists
+    const sessionId = localStorage.getItem("session-id");
+    if (sessionId) {
+      router.push("/"); // Redirect to home if already logged in
+    }
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!username.trim() || !password.trim()) {
       setError("Username and password cannot be empty.");
       return;
@@ -37,7 +46,7 @@ export default function Login() {
 
       const data = await response.json();
       localStorage.setItem("session-id", data.sessionId);
-      router.push("/");
+      router.push("/"); // Redirect to home after successful login
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error during login.");
     }
@@ -65,7 +74,10 @@ export default function Login() {
             required
             className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
           />
-          <button type="submit" className="btn w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-300">
+          <button
+            type="submit"
+            className="btn w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-300"
+          >
             Login
           </button>
         </form>
@@ -73,11 +85,12 @@ export default function Login() {
         {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
 
         <p className="text-center text-sm mt-3 text-gray-400">
-          Don't have an account?{" "}
-          <a href="/signup" className="text-blue-400 hover:underline">
-            Sign up
-          </a>
-        </p>
+  Don&apos;t have an account?{" "}
+  <a href="/signup" className="text-blue-400 hover:underline">
+    Sign up
+  </a>
+</p>
+
       </div>
     </div>
   );
