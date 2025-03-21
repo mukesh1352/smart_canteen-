@@ -45,13 +45,11 @@ export default function Header() {
   return (
     <header className="backdrop-blur-md bg-gray-900/30 dark:bg-gray-800/30 shadow-md fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center p-4">
-        {/* Text adapts based on theme */}
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-200 transition-colors duration-300">
           Smart Canteen
         </h1>
 
         <nav className="flex gap-4 items-center">
-          {/* Theme Toggle Button */}
           <button onClick={toggleTheme} className="btn btn-ghost btn-sm transition-all duration-300">
             {theme === "dark" ? (
               <Sun className="w-5 h-5 text-yellow-400 hover:scale-110 transition-transform" />
