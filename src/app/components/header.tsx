@@ -24,9 +24,15 @@ export default function Header() {
         .then((data) => {
           if (data.session) {
             setSession(data.session);
+          } else {
+            localStorage.removeItem("session-id");
+            setSession(null);
           }
         })
-        .catch((error) => console.error("Error fetching session:", error));
+        .catch((error) => {
+          console.error("Error fetching session:", error);
+          localStorage.removeItem("session-id");
+        });
     }
   }, []);
 
@@ -53,9 +59,7 @@ export default function Header() {
   return (
     <header className="backdrop-blur-md bg-gray-900/30 dark:bg-gray-800/30 shadow-md fixed top-0 left-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center p-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-200 transition-colors duration-300">
-          Smart Canteen
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-200">Smart Canteen</h1>
 
         <nav className="flex gap-4 items-center">
           <button onClick={toggleTheme} className="btn btn-ghost btn-sm">
@@ -63,9 +67,7 @@ export default function Header() {
           </button>
 
           {session ? (
-            <button onClick={handleLogout} className="btn btn-error btn-sm text-white">
-              Logout
-            </button>
+            <button onClick={handleLogout} className="btn btn-error btn-sm text-white">Logout</button>
           ) : (
             <>
               <Link href="/login" className="btn btn-outline btn-sm">Login</Link>

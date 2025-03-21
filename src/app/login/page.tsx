@@ -13,14 +13,11 @@ export default function Login() {
 
   useEffect(() => {
     const sessionId = localStorage.getItem("session-id");
-    if (sessionId) {
-      router.push("/");
-    }
+    if (sessionId) router.push("/");
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!username.trim() || !password.trim()) {
       setError("Username and password cannot be empty.");
       return;
@@ -63,10 +60,6 @@ export default function Login() {
         </form>
 
         {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
-
-        <p className="text-center text-sm mt-3 text-gray-400">
-          Don&apos;t have an account? <a href="/signup" className="text-blue-400 hover:underline">Sign up</a>
-        </p>
       </div>
     </div>
   );
