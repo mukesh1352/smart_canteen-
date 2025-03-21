@@ -11,7 +11,7 @@ export default function Signup() {
 
   // Function to handle username & password signup
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     if (!username.trim() || !password.trim()) {
       setError("Username and password cannot be empty.");
@@ -38,9 +38,7 @@ export default function Signup() {
         createdAt: new Date().toISOString(),
       });
 
-      // alert("Signup successful! Redirecting to login page...");
-
-      // Redirect to home page after successful signup
+      // Redirect to login page after successful signup
       window.location.href = "/login";
 
       // Clear input fields
@@ -54,29 +52,41 @@ export default function Signup() {
   };
 
   return (
-    <div className="signup-container">
-      <h1>Signup</h1>
+    <div className="flex justify-center items-center min-h-screen bg-black bg-opacity-80 backdrop-blur-lg">
+      <div className="card w-96 p-6 rounded-xl shadow-2xl bg-gray-900 bg-opacity-60 backdrop-blur-lg border border-gray-700">
+        <h2 className="text-2xl font-bold text-center text-white mb-4">Sign Up</h2>
 
-      {/* Signup with Username & Password */}
-      <form onSubmit={handleSignup}>
-        <input
-          type="text"
-          placeholder="Enter Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Enter Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Sign Up</button>
-      </form>
+        <form onSubmit={handleSignup} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Enter Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
+          />
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
+          />
+          <button type="submit" className="btn w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-300">
+            Sign Up
+          </button>
+        </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
+
+        <p className="text-center text-sm mt-3 text-gray-400">
+          Already have an account?{" "}
+          <a href="/login" className="text-blue-400 hover:underline">
+            Login
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
