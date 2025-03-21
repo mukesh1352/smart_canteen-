@@ -44,14 +44,41 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      <form onSubmit={handleLogin}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit">Login</button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="flex justify-center items-center min-h-screen bg-black bg-opacity-80 backdrop-blur-lg">
+      <div className="card w-96 p-6 rounded-xl shadow-2xl bg-gray-900 bg-opacity-60 backdrop-blur-lg border border-gray-700">
+        <h2 className="text-2xl font-bold text-center text-white mb-4">Login</h2>
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Enter Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
+          />
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="input input-bordered w-full bg-gray-800 text-white border-gray-600 focus:border-blue-500 focus:ring focus:ring-blue-400/50"
+          />
+          <button type="submit" className="btn w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-all duration-300">
+            Login
+          </button>
+        </form>
+
+        {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
+
+        <p className="text-center text-sm mt-3 text-gray-400">
+          Don't have an account?{" "}
+          <a href="/signup" className="text-blue-400 hover:underline">
+            Sign up
+          </a>
+        </p>
+      </div>
     </div>
   );
 }
