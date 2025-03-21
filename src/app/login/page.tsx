@@ -3,11 +3,13 @@ import { useState } from "react";
 import { db } from "../firebase"; // Import Firebase modules
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
 import bcrypt from "bcryptjs"; // For password comparison
+import { useRouter } from "next/navigation";  // Import router
 
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const router = useRouter();  // Initialize router
 
   // Function to handle login
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,7 +50,7 @@ export default function Login() {
       localStorage.setItem("session-id", data.sessionId);
 
       // Redirect to home
-      window.location.href = "/";
+      router.push("/");  // Use router.push for navigation
     } catch (err) {
       console.error("Login Error:", err);
       setError(err instanceof Error ? err.message : "Error during login.");
