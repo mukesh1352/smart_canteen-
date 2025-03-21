@@ -3,15 +3,17 @@ import { useState } from "react";
 import { db } from "../firebase"; // Import Firebase modules
 import { doc, getDoc } from "firebase/firestore"; // Firestore functions
 import bcrypt from "bcryptjs"; // For password comparison
+import { useRouter } from "next/navigation";  // Import router
 
 export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const router = useRouter();  // Initialize router
 
   // Function to handle login
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     if (!username.trim() || !password.trim()) {
       setError("Username and password cannot be empty.");
@@ -28,25 +30,29 @@ export default function Login() {
       }
 
       const userData = userSnap.data();
-
-      // Compare hashed password
       const isMatch = await bcrypt.compare(password, userData.password);
+
       if (!isMatch) {
         setError("Invalid username or password.");
         return;
       }
 
-    //   alert("Login successful! Redirecting to home page...");
-      
-      // Redirect to home page after successful login
-      window.location.href = "/";
+      // Create session via API
+      const response = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
 
-      // Clear input fields
-      setUsername("");
-      setPassword("");
-      setError(null);
+      if (!response.ok) throw new Error("Session creation failed");
+
+      const data = await response.json();
+      localStorage.setItem("session-id", data.sessionId);
+
+      // Redirect to home
+      router.push("/");  // Use router.push for navigation
     } catch (err) {
-      console.error("Firestore Error:", err);
+      console.error("Login Error:", err);
       setError(err instanceof Error ? err.message : "Error during login.");
     }
   };
@@ -54,7 +60,6 @@ export default function Login() {
   return (
     <div className="login-container">
       <h1>Login</h1>
-
       <form onSubmit={handleLogin}>
         <input
           type="text"
@@ -72,7 +77,6 @@ export default function Login() {
         />
         <button type="submit">Login</button>
       </form>
-
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
