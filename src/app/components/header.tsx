@@ -1,9 +1,11 @@
 "use client";
 import Link from 'next/link';
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";  // Import router
 
 const Header = () => {
   const [session, setSession] = useState<any>(null);
+  const router = useRouter();  // Initialize router
 
   useEffect(() => {
     const sessionId = localStorage.getItem("session-id");
@@ -25,7 +27,7 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("session-id");
-    window.location.href = "/login";
+    router.push("/login");  // Use router.push for navigation
   };
 
   return (

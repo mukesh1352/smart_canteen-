@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";  // Import router
 
 interface Session {
   username: string;
@@ -9,6 +10,7 @@ interface Session {
 export default function ProtectedPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true); // New loading state
+  const router = useRouter();  // Initialize router
 
   useEffect(() => {
     const checkSession = async () => {
@@ -46,7 +48,7 @@ export default function ProtectedPage() {
   // Logout function (clears session and redirects)
   const logoutUser = () => {
     localStorage.removeItem("session-id");
-    window.location.href = "/login";
+    router.push("/login");  // Use router.push for navigation
   };
 
   if (loading) {

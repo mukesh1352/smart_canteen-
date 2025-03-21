@@ -1,13 +1,16 @@
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";  // Import router
 
 export default function Logout() {
+  const router = useRouter();  // Initialize router
+
   useEffect(() => {
     const logoutUser = async () => {
       const sessionId = localStorage.getItem("session-id");
       if (!sessionId) {
         // If no session found, redirect directly to home page
-        window.location.href = "/";
+        router.push("/");  // Redirect to home page
         return;
       }
 
@@ -21,11 +24,11 @@ export default function Logout() {
       localStorage.removeItem("session-id");
 
       // Redirect to home page after logout
-      window.location.href = "/";
+      router.push("/");  // Redirect to home page
     };
 
     logoutUser();
-  }, []);
+  }, [router]);
 
   return <h1>Logging out...</h1>;
 }
