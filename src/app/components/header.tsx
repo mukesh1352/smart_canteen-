@@ -1,19 +1,52 @@
-// components/Header.js
 "use client";
 import Link from 'next/link';
+import { useEffect, useState } from "react";
 
 const Header = () => {
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    const sessionId = localStorage.getItem("session-id");
+
+    if (sessionId) {
+      fetch("/api/session", {
+        method: "GET",
+        headers: { "session-id": sessionId },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.session) {
+            setSession(data.session);
+          }
+        })
+        .catch((error) => console.error("Error fetching session:", error));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("session-id");
+    window.location.href = "/login";
+  };
+
   return (
     <header style={styles.header}>
       <div style={styles.container}>
         <h1 style={styles.title}>Smart Canteen</h1>
         <nav style={styles.nav}>
-          <Link href="/login" style={styles.button}>
-            Login
-          </Link>
-          <Link href="/signup" style={{ ...styles.button, backgroundColor: '#007bff' }}>
-            Sign Up
-          </Link>
+          {session ? (
+            <button onClick={handleLogout} style={styles.button}>
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link href="/login" style={styles.button}>
+                Login
+              </Link>
+              <Link href="/signup" style={{ ...styles.button, backgroundColor: '#007bff' }}>
+                Sign Up
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>
