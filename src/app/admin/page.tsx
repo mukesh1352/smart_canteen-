@@ -63,8 +63,8 @@ export default function AdminPage() {
 
     try {
       const docRef = await addDoc(collection(db, "items"), {
-        Item: newItemName, // ✅ Use "Item" to match Firestore field
-        Total: newItemTotal, // ✅ Use "Total"
+        Item: newItemName,
+        Total: newItemTotal, 
       });
 
       setItems([...items, { id: docRef.id, name: newItemName, total: newItemTotal }]);
