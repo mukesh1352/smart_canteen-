@@ -11,10 +11,6 @@
         "src": "/(.*)",
         "dest": "app.py"
       }
-    ],
-    "ignore": [
-      "canteen_shop_data.csv",
-      "chatbot_model.pkl"
     ]
   }
   
