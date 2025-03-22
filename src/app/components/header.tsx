@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, User } from "lucide-react";
 
 export default function Header() {
   const [session, setSession] = useState<{ username: string } | null>(null);
@@ -69,10 +69,16 @@ export default function Header() {
           {session ? (
             <button onClick={handleLogout} className="btn btn-error btn-sm text-white">Logout</button>
           ) : (
-            <>
-              <Link href="/login" className="btn btn-outline btn-sm">Login</Link>
-              <Link href="/signup" className="btn btn-primary btn-sm">Sign Up</Link>
-            </>
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-sm flex items-center gap-2">
+                <User className="w-5 h-5" />
+                <span>Login</span>
+              </div>
+              <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+                <li><Link href="/login?role=user">User Login</Link></li>
+                <li><Link href="/login?role=admin">Admin Login</Link></li>
+              </ul>
+            </div>
           )}
         </nav>
       </div>
