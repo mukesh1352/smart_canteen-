@@ -69,15 +69,20 @@ export default function Header() {
           {session ? (
             <button onClick={handleLogout} className="btn btn-error btn-sm text-white">Logout</button>
           ) : (
-            <div className="dropdown dropdown-end">
-              <div tabIndex={0} role="button" className="btn btn-ghost btn-sm flex items-center gap-2">
-                <User className="w-5 h-5" />
-                <span>Login</span>
+            <div className="flex gap-2">
+              <div className="dropdown dropdown-end">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-sm flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  <span>Login</span>
+                </div>
+                <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+                  <li><Link href="/login?role=user">User Login</Link></li>
+                  <li><Link href="/login?role=admin">Admin Login</Link></li>
+                </ul>
               </div>
-              <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
-                <li><Link href="/login?role=user">User Login</Link></li>
-                <li><Link href="/login?role=admin">Admin Login</Link></li>
-              </ul>
+              <Link href="/signup">
+                <button className="btn btn-primary btn-sm">Signup</button>
+              </Link>
             </div>
           )}
         </nav>
