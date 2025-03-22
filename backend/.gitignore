@@ -11,3 +11,4 @@ db.sqlite3
 # Vercel & Deployment
 .vercel/
 .vercel/cache/backend/venv/
+.vercel
