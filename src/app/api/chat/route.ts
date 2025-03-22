@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     const data = await flaskResponse.json();
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ response: "Error connecting to the chatbot backend." }, { status: 500 });
   }
 }
