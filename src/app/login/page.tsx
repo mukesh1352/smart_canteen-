@@ -1,3 +1,4 @@
+// page.tsx (or page.js)
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,10 +12,19 @@ const LoginPage = () => {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
+    // Get role from query params on the client side
+    const queryRole = new URLSearchParams(window.location.search).get("role");
+    if (queryRole) {
+      setRole(queryRole);
+    }
+
     const sessionId = localStorage.getItem("session-id");
-    if (sessionId) router.push("/");
+    if (sessionId) {
+      router.push("/");
+    }
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -25,29 +35,35 @@ const LoginPage = () => {
     }
 
     try {
-      let userDoc = await getDoc(doc(db, "admin", username));
-      let role = "admin";
+      let userDoc;
       let passwordMatch = false;
 
-      if (!userDoc.exists()) {
-        // Check for user in user_detail collection (hashed password)
-        userDoc = await getDoc(doc(db, "user_detail", username));
-        role = "user";
-      }
-
-      if (!userDoc.exists()) throw new Error("Invalid username or password.");
-      const userData = userDoc.data();
-
-      // For admin: Compare plain text password
       if (role === "admin") {
-        passwordMatch = password === userData.password;
+        userDoc = await getDoc(doc(db, "admin", username));
+        if (!userDoc.exists()) {
+          setError("Admin not found.");
+          return;
+        }
+
+        const userData = userDoc.data();
+        passwordMatch = password === userData.password; // Directly compare plain text password
+      } else if (role === "user") {
+        userDoc = await getDoc(doc(db, "user_detail", username));
+        if (!userDoc.exists()) {
+          setError("User not found.");
+          return;
+        }
+
+        const userData = userDoc.data();
+        passwordMatch = await bcrypt.compare(password, userData.password); // Compare hashed password
       } else {
-        // For user_detail: Compare hashed password
-        passwordMatch = await bcrypt.compare(password, userData.password);
+        setError("Invalid role.");
+        return;
       }
 
       if (!passwordMatch) {
-        throw new Error("Invalid username or password.");
+        setError("Invalid username or password.");
+        return;
       }
 
       const response = await fetch("/api/session", {
