@@ -1,0 +1,13 @@
+# Python (Flask Backend)
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+instance/
+db.sqlite3
+
+# Vercel & Deployment
+.vercel/
+.vercel/cache/backend/venv/
