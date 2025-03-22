@@ -13,7 +13,7 @@ export default function Chatbot() {
       const res = await fetch(`/api/chat?query=${encodeURIComponent(query)}`);
       const data = await res.json();
       setResponse(data.response);
-    } catch (error) {
+    } catch {
       setResponse("Error fetching response.");
     }
   };
