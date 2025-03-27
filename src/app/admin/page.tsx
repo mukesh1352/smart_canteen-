@@ -9,6 +9,7 @@ interface Item {
   id: string;
   name: string;
   total: number;
+  quantitySold: number;
 }
 
 export default function AdminPage() {
@@ -16,8 +17,6 @@ export default function AdminPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editedName, setEditedName] = useState("");
   const [editedTotal, setEditedTotal] = useState<number>(0);
-  const [newItemName, setNewItemName] = useState("");
-  const [newItemTotal, setNewItemTotal] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +27,7 @@ export default function AdminPage() {
           id: doc.id,
           name: doc.data().Item || "Unnamed",
           total: doc.data().Total || 0,
+          quantitySold: doc.data().QuantitySold || 0,
         }));
         setItems(itemsList);
       } catch (error) {
@@ -40,15 +40,13 @@ export default function AdminPage() {
   }, []);
 
   const addItem = async () => {
-    if (!newItemName || newItemTotal <= 0) return;
     try {
       const docRef = await addDoc(collection(db, "items"), {
-        Item: newItemName,
-        Total: newItemTotal,
+        Item: "New Item",
+        Total: 0,
+        QuantitySold: 0,
       });
-      setItems([...items, { id: docRef.id, name: newItemName, total: newItemTotal }]);
-      setNewItemName("");
-      setNewItemTotal(0);
+      setItems([...items, { id: docRef.id, name: "New Item", total: 0, quantitySold: 0 }]);
     } catch (error) {
       console.error("Error adding item:", error);
     }
@@ -88,38 +86,21 @@ export default function AdminPage() {
 
   return (
     <div className="container mx-auto p-6 bg-black text-white">
-      <h1 className="text-3xl font-bold mb-6 text-center text-cyan-400">J.A.R.V.I.S. Admin Dashboard</h1>
-
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-cyan-400">Smart Canteen Admin Portal</h1>
+        <button onClick={addItem} className="bg-green-500 px-4 py-2 rounded">Add Row</button>
+      </div>
       {loading ? (
         <p className="text-center text-cyan-400">Loading...</p>
       ) : (
         <>
-          <div className="flex gap-4 mb-6">
-            <input
-              type="text"
-              placeholder="Item Name"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              className="border p-2 rounded bg-gray-800 text-white"
-            />
-            <input
-              type="number"
-              placeholder="Total"
-              value={newItemTotal}
-              onChange={(e) => setNewItemTotal(Number(e.target.value))}
-              className="border p-2 rounded bg-gray-800 text-white"
-            />
-            <button className="bg-cyan-500 text-white px-4 py-2 rounded" onClick={addItem}>
-              Add Item
-            </button>
-          </div>
-
           <div className="overflow-x-auto mb-6">
             <table className="table-auto w-full border-collapse border border-cyan-500">
               <thead>
                 <tr className="bg-cyan-500 text-black">
                   <th className="border border-cyan-500 px-4 py-2">Item Name</th>
                   <th className="border border-cyan-500 px-4 py-2">Total</th>
+                  <th className="border border-cyan-500 px-4 py-2">Quantity Sold</th>
                   <th className="border border-cyan-500 px-4 py-2">Actions</th>
                 </tr>
               </thead>
@@ -128,42 +109,22 @@ export default function AdminPage() {
                   <tr key={item.id} className="text-center">
                     {editingItemId === item.id ? (
                       <>
-                        <td className="border border-cyan-500 px-4 py-2">
-                          <input
-                            type="text"
-                            value={editedName}
-                            onChange={(e) => setEditedName(e.target.value)}
-                            className="border p-2 rounded bg-gray-800 text-white"
-                          />
-                        </td>
-                        <td className="border border-cyan-500 px-4 py-2">
-                          <input
-                            type="number"
-                            value={editedTotal}
-                            onChange={(e) => setEditedTotal(Number(e.target.value))}
-                            className="border p-2 rounded bg-gray-800 text-white"
-                          />
-                        </td>
-                        <td className="border border-cyan-500 px-4 py-2">
-                          <button className="bg-green-500 text-white px-2 py-1 rounded mr-2" onClick={() => saveItem(item.id)}>
-                            Save
-                          </button>
-                          <button className="bg-gray-500 text-white px-2 py-1 rounded" onClick={() => setEditingItemId(null)}>
-                            Cancel
-                          </button>
+                        <td><input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="border p-2 rounded bg-gray-800 text-white" /></td>
+                        <td><input type="number" value={editedTotal} onChange={(e) => setEditedTotal(Number(e.target.value))} className="border p-2 rounded bg-gray-800 text-white" /></td>
+                        <td>{item.quantitySold}</td>
+                        <td>
+                          <button className="bg-green-500 px-2 py-1 rounded" onClick={() => saveItem(item.id)}>Save</button>
+                          <button className="bg-gray-500 px-2 py-1 rounded" onClick={() => setEditingItemId(null)}>Cancel</button>
                         </td>
                       </>
                     ) : (
                       <>
-                        <td className="border border-cyan-500 px-4 py-2">{item.name}</td>
-                        <td className="border border-cyan-500 px-4 py-2">{item.total}</td>
-                        <td className="border border-cyan-500 px-4 py-2">
-                          <button className="bg-yellow-500 text-black px-2 py-1 rounded mr-2" onClick={() => editItem(item)}>
-                            Edit
-                          </button>
-                          <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => deleteItem(item.id)}>
-                            Delete
-                          </button>
+                        <td>{item.name}</td>
+                        <td>{item.total}</td>
+                        <td>{item.quantitySold}</td>
+                        <td>
+                          <button className="bg-yellow-500 px-2 py-1 rounded" onClick={() => editItem(item)}>Edit</button>
+                          <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteItem(item.id)}>Delete</button>
                         </td>
                       </>
                     )}
@@ -172,21 +133,15 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
-
-          <div className="flex justify-center mt-6">
-            <ResponsiveContainer width="90%" height={300}>
-              <BarChart data={items} barCategoryGap={15}>
-                <CartesianGrid strokeDasharray="3 3" stroke="cyan" />
-                <XAxis dataKey="name" stroke="cyan" />
-                <YAxis stroke="cyan" />
-                <Tooltip cursor={{ fill: "rgba(0,255,255,0.2)" }} contentStyle={{ backgroundColor: "black", borderColor: "cyan" }} />
-                <Bar dataKey="total" fill="url(#neonGradient)" animationDuration={1000} />
-                <defs>
-                  <linearGradient id="neonGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00ffff" />
-                    <stop offset="100%" stopColor="#005f5f" />
-                  </linearGradient>
-                </defs>
+          <div className="w-full h-64 bg-gray-900 p-4 rounded-lg">
+            <h2 className="text-xl text-cyan-400 mb-4">Quantity Sold Chart</h2>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={items} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" stroke="#FFFFFF" />
+                <YAxis stroke="#FFFFFF" />
+                <Tooltip />
+                <Bar dataKey="quantitySold" fill="#00FFFF" barSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>
