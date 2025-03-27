@@ -38,7 +38,7 @@ export default function AdminPage() {
 
           return {
             id: doc.id,
-            name: data.Item || "Unnamed", // ✅ Fix: Use "Item"
+            name: data.Item || "Unnamed", // ✅ Fix: Use "Item"`
             total: data.Total || 0, // ✅ Fix: Use "Total"
           };
         });
