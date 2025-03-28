@@ -9,7 +9,7 @@ interface Item {
   id: string;
   name: string;
   total: number;
-  quantitySold: number;
+  quantitysold: number;
 }
 
 export default function AdminPage() {
@@ -27,7 +27,7 @@ export default function AdminPage() {
           id: doc.id,
           name: doc.data().Item || "Unnamed",
           total: doc.data().Total || 0,
-          quantitySold: doc.data().QuantitySold || 0,
+          quantitysold: doc.data().quantitysold || 0,  // 🔥 Correctly mapped
         }));
         setItems(itemsList);
       } catch (error) {
@@ -44,9 +44,9 @@ export default function AdminPage() {
       const docRef = await addDoc(collection(db, "items"), {
         Item: "New Item",
         Total: 0,
-        QuantitySold: 0,
+        quantitysold: 0, // 🔥 Ensure it matches Firestore
       });
-      setItems([...items, { id: docRef.id, name: "New Item", total: 0, quantitySold: 0 }]);
+      setItems([...items, { id: docRef.id, name: "New Item", total: 0, quantitysold: 0 }]);
     } catch (error) {
       console.error("Error adding item:", error);
     }
@@ -111,7 +111,7 @@ export default function AdminPage() {
                       <>
                         <td><input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="border p-2 rounded bg-gray-800 text-white" /></td>
                         <td><input type="number" value={editedTotal} onChange={(e) => setEditedTotal(Number(e.target.value))} className="border p-2 rounded bg-gray-800 text-white" /></td>
-                        <td>{item.quantitySold}</td>
+                        <td>{item.quantitysold}</td>
                         <td>
                           <button className="bg-green-500 px-2 py-1 rounded" onClick={() => saveItem(item.id)}>Save</button>
                           <button className="bg-gray-500 px-2 py-1 rounded" onClick={() => setEditingItemId(null)}>Cancel</button>
@@ -121,7 +121,7 @@ export default function AdminPage() {
                       <>
                         <td>{item.name}</td>
                         <td>{item.total}</td>
-                        <td>{item.quantitySold}</td>
+                        <td>{item.quantitysold}</td>
                         <td>
                           <button className="bg-yellow-500 px-2 py-1 rounded" onClick={() => editItem(item)}>Edit</button>
                           <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteItem(item.id)}>Delete</button>
@@ -141,7 +141,7 @@ export default function AdminPage() {
                 <XAxis dataKey="name" stroke="#FFFFFF" />
                 <YAxis stroke="#FFFFFF" />
                 <Tooltip />
-                <Bar dataKey="quantitySold" fill="#00FFFF" barSize={30} />
+                <Bar dataKey="quantitysold" fill="#00FFFF" barSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>
