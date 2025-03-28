@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { database } from "../firebase"; 
 import { ref, onValue, off, DataSnapshot } from "firebase/database";
 
-const LOW_LEVEL_THRESHOLD = 10;  // Adjust based on sensor calibration
-const HIGH_LEVEL_THRESHOLD = 100; // Adjust based on sensor calibration
+const LOW_LEVEL_THRESHOLD = 10;
+const HIGH_LEVEL_THRESHOLD = 100;
 
 const Data = () => {
   const [latestWaterLevel, setLatestWaterLevel] = useState<{ timestamp: string; level: number } | null>(null);
@@ -13,7 +13,7 @@ const Data = () => {
   useEffect(() => {
     const dbRef = ref(database, "/water_levels");
 
-    const handleValueChange = (snapshot: DataSnapshot) => {  // ✅ Properly typed
+    const handleValueChange = (snapshot: DataSnapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val() as Record<string, number>;
         const formattedData = Object.entries(data).map(([timestamp, level]) => ({
@@ -25,7 +25,7 @@ const Data = () => {
 
         setLatestWaterLevel(latestEntry);
 
-        // Check water level and trigger alert only once per state
+        // Trigger alert only when crossing thresholds
         if (latestEntry.level <= LOW_LEVEL_THRESHOLD && lastAlert !== "low") {
           alert("⚠️ Water level is CRITICAL! Please refill the tank.");
           setLastAlert("low");
@@ -33,17 +33,16 @@ const Data = () => {
           alert("✅ Water level is HIGH.");
           setLastAlert("high");
         } else if (latestEntry.level > LOW_LEVEL_THRESHOLD && latestEntry.level < HIGH_LEVEL_THRESHOLD) {
-          setLastAlert(null); // Reset if within normal range
+          setLastAlert(null);
         }
       }
     };
 
-    onValue(dbRef, handleValueChange); // ✅ Listen to Firebase changes
+    onValue(dbRef, handleValueChange);
 
-    return () => off(dbRef, "value", handleValueChange); // ✅ Cleanup listener on unmount
-  }, [lastAlert]); // Only depend on `lastAlert`
+    return () => off(dbRef, "value", handleValueChange);
+  }, [lastAlert]);
 
-  // Set background color dynamically
   const getBackgroundColor = () => {
     if (!latestWaterLevel) return "bg-gray-100";
     if (latestWaterLevel.level <= LOW_LEVEL_THRESHOLD) return "bg-red-500 text-white";
@@ -52,19 +51,18 @@ const Data = () => {
   };
 
   return (
-    <div className={`p-6 rounded-lg shadow-md flex items-center justify-center ${getBackgroundColor()}`}>
-      <h2 className="text-2xl font-bold mr-4">💧 Water Level:</h2>
+    <div className="flex flex-col items-center justify-center p-6 w-full">
 
-      {latestWaterLevel ? (
-        <div className="p-4 bg-white shadow-md rounded-md text-center">
-          <span className="block text-gray-600 text-sm">
-            Last updated: {new Date(parseInt(latestWaterLevel.timestamp)).toLocaleTimeString()}
-          </span>
-          <span className="text-lg font-bold">{latestWaterLevel.level} 🚰</span>
-        </div>
-      ) : (
-        <p className="text-gray-500 text-lg">Fetching latest data...</p>
-      )}
+      <div className={`w-full max-w-md p-6 rounded-lg shadow-lg transform transition-all duration-300 ${getBackgroundColor()}`}>
+        {latestWaterLevel ? (
+          <div className="text-center">
+            <p className="text-sm text-gray-200 mb-2">Last updated: {new Date(parseInt(latestWaterLevel.timestamp)).toLocaleTimeString()}</p>
+            <p className="text-5xl font-bold">{latestWaterLevel.level} 🚰</p>
+          </div>
+        ) : (
+          <p className="text-lg text-gray-700 animate-pulse">Fetching latest data...</p>
+        )}
+      </div>
     </div>
   );
 };
