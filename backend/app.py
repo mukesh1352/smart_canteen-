@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
+import firebase_admin
+from firebase_admin import credentials, firestore
 import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -8,16 +10,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Load the dataset (update path if needed)
-df = pd.read_csv('canteen_shop_data.csv')
-
-# Preprocess the Date and Time columns (if applicable)
-df['Date'] = pd.to_datetime(df['Date'])
-df['Customer Satisfaction'] = df['Customer Satisfaction'].fillna(df['Customer Satisfaction'].mean())
+# Initialize Firebase
+cred = credentials.Certificate("/home/mukesh/Documents/smart_canteen-/backend/1.json")  # Ensure correct path
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 # --- TRAINING THE MODEL ---
-
-# Add generalized questions and responses
 faq_data = [
     ("What are the opening hours?", "Our canteen is open from 8 AM to 8 PM."),
     ("Do you accept card payments?", "Yes, we accept both cash and card payments."),
@@ -30,10 +28,9 @@ faq_data = [
     ("How do you manage inventory?", "We use an automated inventory management system to track stock levels."),
     ("What are the hygiene standards?", "We follow strict hygiene protocols to ensure food safety."),
     ("Can I book the canteen for an event?", "Yes, you can book the canteen for private events. Contact us for details."),
-    ("How do you handle customer complaints?", "We have a dedicated team to address customer complaints promptly.")
+    ("How do you handle customer complaints?", "We have a dedicated team to address customer complaints promptly."),
 ]
 
-# Add basic greetings and responses
 greetings_data = [
     ("hello", "Hello! How can I assist you today?"),
     ("hi", "Hi there! How can I help you?"),
@@ -43,11 +40,8 @@ greetings_data = [
     ("good evening", "Good evening! What can I do for you?")
 ]
 
-# Merge FAQs with menu-based responses
-df['Response'] = df.apply(lambda row: f"We have {row['Item']} available at {row['Price']}.", axis=1)
-qa_df = pd.concat([df[['Item', 'Response']].rename(columns={'Item': 'Question', 'Response': 'Answer'}), pd.DataFrame(faq_data, columns=['Question', 'Answer'])])
-
-# Add greetings to the QA dataframe
+# Create DataFrame
+qa_df = pd.DataFrame(faq_data, columns=['Question', 'Answer'])
 qa_df = pd.concat([qa_df, pd.DataFrame(greetings_data, columns=['Question', 'Answer'])])
 
 # Convert text data into TF-IDF vectors
@@ -74,15 +68,17 @@ def chatbot_response(query):
     best_match_index = np.argmax(similarities)
     best_match_score = np.max(similarities)
 
-    # Adjust the threshold to provide better responses
     if best_match_score < 0.2:
         return "Sorry, I couldn't understand your question. Please try again."
 
     # Check if the query is about today's menu
     if "today" in query or "food" in query or "menu" in query:
-        # Filter for today's menu items
         today_date = datetime.now().strftime('%Y-%m-%d')
-        today_items = df[df['Date'].dt.strftime('%Y-%m-%d') == today_date]['Item'].tolist()
+
+        # Fetch today's items from Firestore
+        items_ref = db.collection("items")
+        docs = items_ref.stream()
+        today_items = [doc.to_dict().get('Item', 'Unknown') for doc in docs]
 
         if today_items:
             return f"Here are the items available today: {', '.join(today_items)}."
