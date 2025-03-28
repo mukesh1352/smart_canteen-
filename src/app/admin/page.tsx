@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, doc, deleteDoc, updateDoc, addDoc } from "firebase/firestore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import Data from "../components/data1";
 
 interface Item {
   id: string;
@@ -122,7 +123,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 bg-black text-white">
+    <><div className="container mx-auto p-6 bg-black text-white">
       <h1 className="text-3xl font-bold text-cyan-400 mb-6">Smart Canteen</h1>
 
       {/* CRUD Operations */}
@@ -132,15 +133,13 @@ export default function AdminPage() {
           placeholder="Item Name"
           value={newItemName}
           onChange={(e) => setNewItemName(e.target.value)}
-          className="border p-2 rounded bg-gray-800 text-white mr-2"
-        />
+          className="border p-2 rounded bg-gray-800 text-white mr-2" />
         <input
           type="number"
           placeholder="Total"
           value={newItemTotal}
           onChange={(e) => setNewItemTotal(Number(e.target.value))}
-          className="border p-2 rounded bg-gray-800 text-white mr-2"
-        />
+          className="border p-2 rounded bg-gray-800 text-white mr-2" />
         <button className="bg-blue-500 px-4 py-2 rounded" onClick={addItem}>Add Item</button>
       </div>
 
@@ -162,8 +161,7 @@ export default function AdminPage() {
                       type="text"
                       value={editedName}
                       onChange={(e) => setEditedName(e.target.value)}
-                      className="border p-1 bg-gray-800 text-white"
-                    />
+                      className="border p-1 bg-gray-800 text-white" />
                   ) : (
                     item.name
                   )}
@@ -174,8 +172,7 @@ export default function AdminPage() {
                       type="number"
                       value={editedTotal}
                       onChange={(e) => setEditedTotal(Number(e.target.value))}
-                      className="border p-1 bg-gray-800 text-white"
-                    />
+                      className="border p-1 bg-gray-800 text-white" />
                   ) : (
                     item.total
                   )}
@@ -205,18 +202,18 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-  {tokens.map((token) => (
-    <tr key={token.id} className="text-center">
-      <td>{token.tokenId}</td>
-      <td>{token.grandTotal}</td>
-      <td>
-        <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteToken(token.id)}>
-          Delete
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
+            {tokens.map((token) => (
+              <tr key={token.id} className="text-center">
+                <td>{token.tokenId}</td>
+                <td>{token.grandTotal}</td>
+                <td>
+                  <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteToken(token.id)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
 
@@ -230,6 +227,8 @@ export default function AdminPage() {
           <Bar dataKey="quantitysold" fill="#82ca9d" />
         </BarChart>
       </ResponsiveContainer>
-    </div>
-  );
+    </div><div className="fixed bottom-5 right-5">
+        <Data />
+    </div></>
+    );
 }
