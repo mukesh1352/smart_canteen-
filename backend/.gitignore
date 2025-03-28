@@ -12,3 +12,4 @@ db.sqlite3
 .vercel/
 .vercel/cache/backend/venv/
 .vercel
+backend/1.json
