@@ -12,12 +12,20 @@ interface Item {
   quantitysold: number;
 }
 
+interface Token {
+  id: string;
+  tokenId: number;
+  grandTotal: number;
+}
+
 export default function AdminPage() {
   const [items, setItems] = useState<Item[]>([]);
+  const [tokens, setTokens] = useState<Token[]>([]);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editedName, setEditedName] = useState("");
   const [editedTotal, setEditedTotal] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemTotal, setNewItemTotal] = useState<number>(0);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -27,26 +35,46 @@ export default function AdminPage() {
           id: doc.id,
           name: doc.data().Item || "Unnamed",
           total: doc.data().Total || 0,
-          quantitysold: doc.data().quantitysold || 0,  // 🔥 Correctly mapped
+          quantitysold: doc.data().quantitysold || 0,
         }));
         setItems(itemsList);
       } catch (error) {
         console.error("Error fetching items:", error);
-      } finally {
-        setLoading(false);
       }
     };
+
+    const fetchTokens = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "tokens"));
+        const tokensList: Token[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          tokenId: doc.data().tokenId || 0,
+          grandTotal: doc.data().grandTotal || 0,
+        }));
+        setTokens(tokensList);
+      } catch (error) {
+        console.error("Error fetching tokens:", error);
+      }
+    };
+
     fetchItems();
+    fetchTokens();
   }, []);
 
   const addItem = async () => {
+    if (!newItemName || newItemTotal <= 0) {
+      alert("Please enter valid item details");
+      return;
+    }
     try {
       const docRef = await addDoc(collection(db, "items"), {
-        Item: "New Item",
-        Total: 0,
-        quantitysold: 0, // 🔥 Ensure it matches Firestore
+        Item: newItemName,
+        Total: newItemTotal,
+        quantitysold: 0,
       });
-      setItems([...items, { id: docRef.id, name: "New Item", total: 0, quantitysold: 0 }]);
+      setItems([...items, { id: docRef.id, name: newItemName, total: newItemTotal, quantitysold: 0 }]);
+      setNewItemName("");
+      setNewItemTotal(0);
     } catch (error) {
       console.error("Error adding item:", error);
     }
@@ -84,69 +112,124 @@ export default function AdminPage() {
     }
   };
 
+  const deleteToken = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "tokens", id));
+      setTokens((prevTokens) => prevTokens.filter((token) => token.id !== id));
+    } catch (error) {
+      console.error("Error deleting token:", error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 bg-black text-white">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-cyan-400">Smart Canteen</h1>
-        <button onClick={addItem} className="bg-green-500 px-4 py-2 rounded">Add Row</button>
+      <h1 className="text-3xl font-bold text-cyan-400 mb-6">Smart Canteen</h1>
+
+      {/* CRUD Operations */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Item Name"
+          value={newItemName}
+          onChange={(e) => setNewItemName(e.target.value)}
+          className="border p-2 rounded bg-gray-800 text-white mr-2"
+        />
+        <input
+          type="number"
+          placeholder="Total"
+          value={newItemTotal}
+          onChange={(e) => setNewItemTotal(Number(e.target.value))}
+          className="border p-2 rounded bg-gray-800 text-white mr-2"
+        />
+        <button className="bg-blue-500 px-4 py-2 rounded" onClick={addItem}>Add Item</button>
       </div>
-      {loading ? (
-        <p className="text-center text-cyan-400">Loading...</p>
-      ) : (
-        <>
-          <div className="overflow-x-auto mb-6">
-            <table className="table-auto w-full border-collapse border border-cyan-500">
-              <thead>
-                <tr className="bg-cyan-500 text-black">
-                  <th className="border border-cyan-500 px-4 py-2">Item Name</th>
-                  <th className="border border-cyan-500 px-4 py-2">Total</th>
-                  <th className="border border-cyan-500 px-4 py-2">Quantity Sold</th>
-                  <th className="border border-cyan-500 px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id} className="text-center">
-                    {editingItemId === item.id ? (
-                      <>
-                        <td><input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="border p-2 rounded bg-gray-800 text-white" /></td>
-                        <td><input type="number" value={editedTotal} onChange={(e) => setEditedTotal(Number(e.target.value))} className="border p-2 rounded bg-gray-800 text-white" /></td>
-                        <td>{item.quantitysold}</td>
-                        <td>
-                          <button className="bg-green-500 px-2 py-1 rounded" onClick={() => saveItem(item.id)}>Save</button>
-                          <button className="bg-gray-500 px-2 py-1 rounded" onClick={() => setEditingItemId(null)}>Cancel</button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td>{item.name}</td>
-                        <td>{item.total}</td>
-                        <td>{item.quantitysold}</td>
-                        <td>
-                          <button className="bg-yellow-500 px-2 py-1 rounded" onClick={() => editItem(item)}>Edit</button>
-                          <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteItem(item.id)}>Delete</button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="w-full h-64 bg-gray-900 p-4 rounded-lg">
-            <h2 className="text-xl text-cyan-400 mb-4">Quantity Sold Chart</h2>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={items} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" stroke="#FFFFFF" />
-                <YAxis stroke="#FFFFFF" />
-                <Tooltip />
-                <Bar dataKey="quantitysold" fill="#00FFFF" barSize={30} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </>
-      )}
+
+      <div className="overflow-x-auto mb-6">
+        <table className="table-auto w-full border-collapse border border-cyan-500">
+          <thead>
+            <tr className="bg-cyan-500 text-black">
+              <th className="border border-cyan-500 px-4 py-2">Item</th>
+              <th className="border border-cyan-500 px-4 py-2">Total</th>
+              <th className="border border-cyan-500 px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id} className="text-center">
+                <td>
+                  {editingItemId === item.id ? (
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      className="border p-1 bg-gray-800 text-white"
+                    />
+                  ) : (
+                    item.name
+                  )}
+                </td>
+                <td>
+                  {editingItemId === item.id ? (
+                    <input
+                      type="number"
+                      value={editedTotal}
+                      onChange={(e) => setEditedTotal(Number(e.target.value))}
+                      className="border p-1 bg-gray-800 text-white"
+                    />
+                  ) : (
+                    item.total
+                  )}
+                </td>
+                <td>
+                  {editingItemId === item.id ? (
+                    <button className="bg-green-500 px-2 py-1 rounded mr-2" onClick={() => saveItem(item.id)}>Save</button>
+                  ) : (
+                    <button className="bg-yellow-500 px-2 py-1 rounded mr-2" onClick={() => editItem(item)}>Edit</button>
+                  )}
+                  <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteItem(item.id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Token View */}
+      <div className="overflow-x-auto mb-6">
+        <h2 className="text-2xl font-bold text-cyan-400 mb-4">Tokens</h2>
+        <table className="table-auto w-full border-collapse border border-cyan-500">
+          <thead>
+            <tr className="bg-cyan-500 text-black">
+              <th className="border border-cyan-500 px-4 py-2">Token ID</th>
+              <th className="border border-cyan-500 px-4 py-2">Grand Total</th>
+            </tr>
+          </thead>
+          <tbody>
+  {tokens.map((token) => (
+    <tr key={token.id} className="text-center">
+      <td>{token.tokenId}</td>
+      <td>{token.grandTotal}</td>
+      <td>
+        <button className="bg-red-500 px-2 py-1 rounded" onClick={() => deleteToken(token.id)}>
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+        </table>
+      </div>
+
+      {/* Graph */}
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={items} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="quantitysold" fill="#82ca9d" />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

@@ -1,107 +1,169 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { db, auth } from "../firebase";
-import { collection, getDocs, updateDoc, doc, addDoc } from "firebase/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { db } from "../firebase"; // Ensure correct Firebase path
+import { collection, getDocs, updateDoc, doc, addDoc, getDoc } from "firebase/firestore";
 
-export default function SelectionPage() {
-  const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [order, setOrder] = useState<{ [key: string]: number }>({});
-  const [user] = useAuthState(auth);
-  const router = useRouter();
+interface MenuItem {
+  id: string;
+  Item: string;
+  Total: number;
+  quantitysold?: number;
+}
 
+interface Order {
+  [key: string]: {
+    quantity: number;
+    price: number;
+    name: string;
+  };
+}
+
+export default function Page() {
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [order, setOrder] = useState<Order>({});
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // Fetch items from Firebase
   useEffect(() => {
-    const fetchMenuItems = async () => {
-      const querySnapshot = await getDocs(collection(db, "items"));
-      const itemsArray = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setMenuItems(itemsArray);
+    const fetchItems = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "items"));
+        const menuItems: MenuItem[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<MenuItem, "id">),
+        }));
+        setItems(menuItems);
+      } catch (error) {
+        console.error("Error fetching menu:", error);
+      }
     };
-    fetchMenuItems();
+    fetchItems();
   }, []);
 
-  const handleOrderChange = (itemId: string, quantity: number) => {
-    setOrder(prev => ({ ...prev, [itemId]: quantity }));
+  // Handle quantity change
+  const handleQuantityChange = (itemId: string, quantity: number, price: number, name: string) => {
+    if (quantity < 0) return;
+    setOrder((prev) => ({
+      ...prev,
+      [itemId]: { quantity, price, name },
+    }));
   };
 
-  const handleGenerateToken = async () => {
-    if (!user) {
-      alert("You need to be logged in to generate a token.");
-      router.push("/login"); // Redirect to login page
-      return;
-    }
-
-    const tokenId = Math.floor(Math.random() * 1000000);
-    const userRef = collection(db, "user_detail");
-    const userQuerySnapshot = await getDocs(userRef);
-    let username = "Unknown User";
-
-    userQuerySnapshot.forEach(doc => {
-      if (doc.data().email === user.email) {
-        username = doc.data().name;
-      }
+  // Calculate total price
+  useEffect(() => {
+    let total = 0;
+    Object.keys(order).forEach((key) => {
+      total += order[key].quantity * order[key].price;
     });
+    setTotalPrice(total);
+  }, [order]);
 
-    const tokenData = {
-      tokenId,
-      userId: user.uid,
-      username,
-      items: Object.keys(order).map(itemId => ({
-        itemId,
-        quantity: order[itemId],
-      })),
-      createdAt: new Date(),
-    };
+  // Handle Token Generation and Database Update
+  const handleTokenGeneration = async () => {
+    setLoading(true);
+    try {
+      if (Object.keys(order).length === 0) {
+        alert("Please select at least one item.");
+        setLoading(false);
+        return;
+      }
 
-    await addDoc(collection(db, "tokens"), tokenData);
+      // Generate unique token ID (6-digit integer)
+      const tokenId = Math.floor(100000 + Math.random() * 900000);
 
-    for (const itemId in order) {
-      const itemRef = doc(db, "items", itemId);
-      const itemSnapshot = await getDocs(collection(db, "items"));
-      itemSnapshot.forEach(async docSnap => {
-        if (docSnap.id === itemId) {
-          const currentData = docSnap.data();
-          const newQuantitySold = (currentData.quantitysold || 0) + order[itemId];
+      // Create token object with ordered items
+      const tokenData = {
+        tokenId,
+        items: Object.keys(order).map((itemId) => ({
+          itemId,
+          name: order[itemId].name,
+          quantity: order[itemId].quantity,
+          totalPrice: order[itemId].quantity * order[itemId].price,
+        })),
+        grandTotal: totalPrice,
+        timestamp: new Date(),
+      };
+
+      // Save token to "tokens" collection (Admin Side)
+      await addDoc(collection(db, "tokens"), tokenData);
+
+      // Update the `quantitysold` field in "items" collection
+      for (const itemId of Object.keys(order)) {
+        const itemRef = doc(db, "items", itemId);
+
+        // Fetch the current `quantitysold` value
+        const itemSnap = await getDoc(itemRef);
+        if (itemSnap.exists()) {
+          const currentData = itemSnap.data() as MenuItem;
+          const currentQuantitySold = currentData.quantitysold || 0;
+
+          // Increment `quantitysold` without overwriting
+          const newQuantitySold = currentQuantitySold + order[itemId].quantity;
+
+          // Update Firestore
           await updateDoc(itemRef, { quantitysold: newQuantitySold });
         }
-      });
-    }
+      }
 
-    alert(`Token Generated: ${tokenId}`);
+      alert(`Token Generated: ${tokenId}\nYour order has been placed.`);
+      setOrder({}); // Reset order after purchase
+    } catch (error) {
+      console.error("Error generating token:", error);
+      alert("Something went wrong! Please try again.");
+    }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-base-200 p-6">
-      <h1 className="text-3xl font-bold mb-6">Select Your Items</h1>
-
-      <div className="w-full max-w-md space-y-4">
-        {menuItems.map(item => (
-          <div key={item.id} className="card bg-white shadow-md p-4 rounded-lg">
-            <h2 className="text-xl font-semibold">{item.name}</h2>
-            <p className="text-gray-600">Available: {item.total - (item.quantitysold || 0)}</p>
-
-            <input
-              type="number"
-              min="0"
-              className="input input-bordered w-full mt-2"
-              placeholder="Enter quantity"
-              onChange={e => handleOrderChange(item.id, parseInt(e.target.value))}
-            />
+    <div className="min-h-screen p-6 bg-gradient-to-br from-blue-100 to-purple-200">
+      <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">
+        🍽️ Menu Selection
+      </h1>
+      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-lg p-6">
+        {items.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {items.map((item) => (
+              <div key={item.id} className="card bg-base-100 shadow-lg hover:scale-105">
+                <div className="card-body">
+                  <h2 className="card-title text-xl">{item.Item}</h2>
+                  <p className="text-gray-500">Available: {item.Total}</p>
+                  <div className="flex items-center space-x-2 mt-3">
+                    <input
+                      type="number"
+                      min="0"
+                      max={item.Total}
+                      value={order[item.id]?.quantity || 0}
+                      onChange={(e) =>
+                        handleQuantityChange(item.id, parseInt(e.target.value, 10), item.Total, item.Item)
+                      }
+                      className="input input-bordered w-20 text-center"
+                    />
+                    <span className="badge badge-lg badge-primary text-lg">
+                      ₹{(order[item.id]?.quantity || 0) * item.Total}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <p className="text-center text-gray-500">Loading menu...</p>
+        )}
+        <div className="mt-8 text-right text-2xl font-bold text-gray-700">Total: ₹{totalPrice}</div>
+        <div className="flex justify-center mt-6">
+          <button
+            className={`btn btn-success text-lg px-6 py-2 rounded-lg shadow-md transition-transform ${
+              loading ? "opacity-50 cursor-not-allowed" : "hover:scale-105"
+            }`}
+            onClick={handleTokenGeneration}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "🎟️ Get Token"}
+          </button>
+        </div>
       </div>
-
-      {user ? (
-        <button
-          onClick={handleGenerateToken}
-          className="btn btn-primary mt-6"
-        >
-          Generate Token
-        </button>
-      ) : (
-        <p className="mt-4 text-red-500">You must be logged in to generate a token.</p>
-      )}
     </div>
   );
 }
