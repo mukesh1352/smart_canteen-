@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"; // Correct import for Next.js App R
 import Header from "../app/components/header";
 import ItemList from "../app/components/data";
 import Chatbot from "../app/components/Chatbot";
+import QueueCounter from "../app/components/QueueCounter"; // Fixed import path
 
 export default function Home() {
   const router = useRouter();
@@ -19,22 +20,32 @@ export default function Home() {
 
   return (
     <div className="fade-in min-h-screen bg-base-100">
+      {/* 🌟 Header Section */}
       <Header />
-      <div className="pt-20 flex flex-col items-center justify-center space-y-6">
+
+      {/* 📌 Main Content */}
+      <div className="pt-20 flex flex-col items-center justify-center space-y-8">
+        {/* 🏷️ Display Items List */}
         <ItemList />
+
+        {/* 🔘 Button to Navigate */}
         <button
           className="btn btn-primary transition-transform duration-300 hover:scale-105"
           onClick={handleNavigation}
         >
           Enter to Buy
         </button>
+
+        {/* 👥 Queue Counter */}
+        <QueueCounter />
       </div>
 
+      {/* 🤖 Floating Chatbot Button */}
       <div className="fixed bottom-5 right-5">
         <Chatbot />
       </div>
 
-      {/* Global Tailwind Styles for Smooth Page Transition */}
+      {/* 🌟 Global Styles for Smooth Page Transition */}
       <style jsx global>{`
         .fade-in {
           animation: fadeIn 0.5s ease-in-out;
